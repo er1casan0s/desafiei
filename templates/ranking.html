@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking • Desafiei</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/coruja.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    
+    <div class="container">
+        <div class="card fade-in" style="text-align:center;background:var(--grad-hero);color:#fff;border:none">
+            <div style="font-size:52px;margin-bottom:6px">🏆</div>
+            <h1 style="color:#fff">Ranking Desafiei</h1>
+            <p style="opacity:0.9">Top 50 alunos por XP</p>
+        </div>
+
+        <div id="lista-ranking" class="fade-in" style="animation-delay:0.1s"></div>
+
+        <div class="card fade-in" style="text-align:center">
+            <a href="#" onclick="event.preventDefault(); transicaoBolha('/dashboard')" class="btn btn-secundario">⬅️ Voltar</a>
+        </div>
+    </div>
+
+    <div class="coruja-guia" id="coruja-guia">🦉</div>
+    <div class="coruja-balao" id="coruja-balao"></div>
+
+
+    <!-- Botão flutuante para voltar ao dashboard -->
+<a href="/dashboard" class="btn-flutuante-dash" title="Voltar ao Dashboard">📚</a>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tema.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/coruja.js') }}"></script>
+</body>
+</html>

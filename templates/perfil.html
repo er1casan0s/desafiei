@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil • Desafiei</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/coruja.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container" style="max-width:560px">
+
+        <!-- ============================================================
+             CARD DO PERFIL (avatar + nome + XP + estágio + ofensiva)
+             Preenchido dinamicamente pelo JS abaixo
+             ============================================================ -->
+        <div class="card fade-in" style="text-align:center">
+            <h1>👤 Meu Perfil</h1>
+            <div id="info-perfil">Carregando...</div>
+        </div>
+
+        <!-- ============================================================
+             TROCAR FOTO DE PERFIL
+             O input dispara converterFotoPerfil() que converte para base64
+             ============================================================ -->
+        <div class="card fade-in">
+            <h3>📷 Trocar foto de perfil</h3>
+            <p style="color:var(--texto-sec);font-size:14px;margin-bottom:10px">
+                Escolha uma imagem do seu computador (JPG ou PNG).
+            </p>
+            <input type="file" id="nova-foto" accept="image/*" onchange="converterFotoPerfil(this)">
+            <button class="btn" onclick="salvarFoto()" style="width:100%;margin-top:10px">
+                💾 Salvar foto
+            </button>
+        </div>
+
+        <!-- ============================================================
+             TROCAR AVATAR EMOJI
+             Se o aluno escolher um emoji, a foto é removida
+             ============================================================ -->
+        <div class="card fade-in">
+            <h3>😊 Trocar avatar emoji</h3>
+            <select id="novo-emoji">
+                <option value="🦉">🦉 Coruja</option>
+                <option value="🐱">🐱 Gato</option>
+                <option value="🐶">🐶 Cachorro</option>
+                <option value="🦊">🦊 Raposa</option>
+                <option value="🐼">🐼 Panda</option>
+                <option value="🦁">🦁 Leão</option>
+                <option value="🐸">🐸 Sapo</option>
+                <option value="🐨">🐨 Coala</option>
+            </select>
+            <button class="btn" onclick="trocarEmoji()" style="width:100%">Salvar avatar</button>
+        </div>
+
+        <!-- ============================================================
+             SAIR DA CONTA
+             Redireciona para /logout (rota já existente no app.py)
+             ============================================================ -->
+        <div class="card fade-in">
+            <h3>🚪 Sair da conta</h3>
+            <p style="color:var(--texto-sec);font-size:14px;margin-bottom:10px">
+                Você voltará para a tela de login. Seus dados ficam salvos.
+            </p>
+            <a href="/logout" class="btn btn-secundario" style="width:100%">
+                Sair da conta
+            </a>
+        </div>
+
+        <!-- ============================================================
+             ZONA DE RISCO (deletar conta)
+             ============================================================ -->
+        <div class="card fade-in" style="border:2px solid var(--erro)">
+            <h3 style="color:var(--erro)">⚠️ Zona de risco</h3>
+            <p style="color:var(--texto-sec)">Ações irreversíveis para sua conta.</p>
+            <button class="btn btn-perigo" onclick="deletarConta()" style="width:100%">
+                🗑️ Deletar minha conta
+            </button>
+        </div>
+
+        <!-- Botão voltar (redundante com o flutuante, mas útil) -->
+        <div class="card fade-in" style="text-align:center">
+            <a href="#" onclick="event.preventDefault(); transicaoBolha('/dashboard')" class="btn btn-secundario">⬅️ Voltar</a>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CORUJA GUIA (fixa no canto)
+         ============================================================ -->
+    <div class="coruja-guia" id="coruja-guia" title="Clique para ver o tutorial">🦉</div>
+    <div class="coruja-balao" id="coruja-balao"></div>
+
+    <!-- ============================================================
+         BOTÃO FLUTUANTE VOLTAR AO DASHBOARD (canto inferior esquerdo)
+         ============================================================ -->
+    <a href="#" onclick="event.preventDefault(); transicaoBolha('/dashboard')" class="btn-flutuante-dash" title="Voltar ao Dashboard">📚</a>
+
+    <!-- ============================================================
+         SCRIPTS
+         ============================================================ -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tema.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/coruja.js') }}"></script>
+
+    <script>
+        // ============================================================
+        // Variável global que guarda a foto (em base64) escolhida
+        // ============================================================
+        let fotoBase64 = "";
+
+        // ============================================================
+        // Carrega os dados do perfil e monta o HTML do card
+        // ============================================================
+        fetch("/api/meu-perfil").then(r => r.json()).then(u => {
+
+            // ----- Monta o avatar (foto OU emoji) -----
+            // Se o usuário tem foto, mostra a foto em formato oval.
+            // Se não, mostra o emoji escolhido dentro de um círculo.
+            const avatarHTML = u.foto
+                ? `<img src="${u.foto}" alt="Foto de perfil" style="
+                        width: 110px;
+                        height: 140px;
+                        object-fit: cover;
+                        border-radius: 50%;
+                        border: 4px solid var(--card-solid);
+                        box-shadow: 0 8px 20px rgba(59, 158, 255, 0.35);
+                        display: inline-block;
+                    ">`
+                : `<div style="
+                        width: 110px;
+                        height: 140px;
+                        border-radius: 50%;
+                        background: var(--grad-primario);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 56px;
+                        box-shadow: 0 8px 20px rgba(59, 158, 255, 0.35);
+                        margin: 0 auto;
+                    ">${u.avatar_emoji || "🦉"}</div>`;
+
+            // ----- Preenche o card com os dados -----
+            document.getElementById("info-perfil").innerHTML = `
+                <div style="margin-bottom:14px">${avatarHTML}</div>
+                <h2>${u.nome}</h2>
+                <p>${u.idade} anos • ${u.email}</p>
+                <p>XP: <strong>${u.xp}</strong> • Estágio: <strong>${u.estagio}</strong></p>
+                <p>🔥 Ofensiva: ${u.ofensiva || 0} ${(u.ofensiva || 0) === 1 ? "dia" : "dias"}</p>
+            `;
+
+            // ----- Pré-seleciona o emoji atual no <select> -----
+            const select = document.getElementById("novo-emoji");
+            if (select && u.avatar_emoji) select.value = u.avatar_emoji;
+        });
+
+        // ============================================================
+        // Converte a imagem escolhida para base64
+        // (para poder enviar via JSON ao servidor)
+        // ============================================================
+        function converterFotoPerfil(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                fotoBase64 = e.target.result;
+                alert("✅ Foto carregada! Clique em 'Salvar foto' para confirmar.");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ============================================================
+        // Envia a foto (base64) para o servidor
+        // ============================================================
+        async function salvarFoto() {
+            if (!fotoBase64) {
+                alert("⚠️ Escolha uma imagem primeiro!");
+                return;
+            }
+
+            await fetch("/api/atualizar-foto", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ foto: fotoBase64 })
+            });
+
+            alert("✅ Foto atualizada!");
+            location.reload();
+        }
+
+        // ============================================================
+        // Troca o avatar emoji (e limpa a foto antiga)
+        // ============================================================
+        async function trocarEmoji() {
+            const emoji = document.getElementById("novo-emoji").value;
+
+            await fetch("/api/atualizar-foto", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ avatar_emoji: emoji, foto: "" })
+            });
+
+            alert("✅ Avatar atualizado!");
+            location.reload();
+        }
+    </script>
+
+            <canvas id="grafico-xp"></canvas>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        fetch("/api/historico-xp").then(r => r.json()).then(dados => {
+            new Chart(document.getElementById("grafico-xp"), {
+                type: "line",
+                data: {
+                    labels: dados.dias,
+                    datasets: [{
+                        label: "XP ganho",
+                        data: dados.xp,
+                        borderColor: "#3b9eff",
+                        tension: 0.4,
+                        fill: true
+                    }]
+                }
+            });
+        });
+        </script>
+</body>
+</html>
